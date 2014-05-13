@@ -77,6 +77,12 @@ class BasePluginController extends AbstractActionController
              * than its name as the third argument
              */
             $this->pluginName = basename(realpath($pluginName));
+            if ($this->pluginName == 'Factory') {
+                throw new \Exception(
+                    'Attention plugin controller factories: You must pass the plugin
+                    controller the module name rather than your __DIR__for arg 3'
+                );
+            }
         } else {
             /**
              * When this class is instantiated directly instead of being
