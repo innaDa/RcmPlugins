@@ -44,20 +44,8 @@ class IncludeJquery extends AbstractHelper
     public function __invoke()
     {
         $view = $this->getView();
-        $view->headLink()->appendStylesheet(
-            '/modules/rcm-jquery/jquery-ui-1.10.4.custom/css/smoothness/jquery-ui-1.10.4.custom.min.css'
-        );
 
-        /** @var \Zend\View\Helper\HeadScript $headScript */
-        $headScript = $view->headScript();
-        $headScript->prependFile(
-            '/modules/rcm-jquery/jquery-ui-1.10.4.custom/js/'
-            . 'jquery-ui-1.10.4.custom.min.js'
-        );
-        $headScript->prependFile(
-            '/modules/rcm-jquery/jquery-block-ui/jquery-block-ui.js'
-        );
-        $headScript->prependFile(
+        $view->headScript()->prependFile(
             '/modules/rcm-jquery/jquery-ui-1.10.4.custom/js/jquery-1.10.2.js'
         );
     }
