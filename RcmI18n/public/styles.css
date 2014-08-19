@@ -46,13 +46,13 @@
 /* fixes the bug in bootstrap form-control height is different in FF and in Chrome */
 @-moz-document url-prefix() {
     .form-control  {
-        height: 20px;
+   /*height: 20px;*/
     }
 }
 /* fixes the bug in bootstrap form-control input is too wide in Firefox, makes search icon disappear  */
 @-moz-document url-prefix() {
     .input-group .form-control  {
-    width: 90%;
+    /*width: 90%;*/
 }
 }
 .fixed {
