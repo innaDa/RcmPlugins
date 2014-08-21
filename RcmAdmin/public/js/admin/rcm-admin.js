@@ -23,10 +23,10 @@ angular.module(
         ]
     )
 /**
- * rcmAdmin.rcmAdminMenu
+ * rcmAdmin.rcmAdminMenuActions
  */
     .directive(
-        'rcmAdminMenu',
+        'rcmAdminMenuActions',
         [
             'rcmAdminService',
             function (rcmAdminService) {
@@ -243,7 +243,7 @@ var RcmAdminService = {
 
         if (!RcmAdminService.page) {
 
-            RcmAdminService.page = new RcmAdminService.RcmPage(document, jQuery('body'))
+            RcmAdminService.page = new RcmAdminService.RcmPage(document, jQuery('body').find('#sitewrapper'))
         }
         return RcmAdminService.page
     },
@@ -293,6 +293,8 @@ var RcmAdminService = {
 
             self.editMode = (self.editing.length > 0)
 
+            self.disableEvents();
+
             self.events.trigger('editingStateChange', {editMode: self.editMode, editing: self.editing});
 
             return self.editMode;
@@ -307,6 +309,17 @@ var RcmAdminService = {
 
             window.location = window.location.pathname;
         }
+
+        self.disableEvents = function () {
+            //Disable normal events
+            self.elm.find('*').unbind();
+            var donDoIt = function () {
+                return false;
+            };
+            self.elm.find('button').click(donDoIt);
+            self.elm.find('a').click(donDoIt);
+            self.elm.find('form').submit(donDoIt)
+        };
 
         self.buildData = function (onBuilt) {
 
@@ -368,15 +381,6 @@ var RcmAdminService = {
 
         self.plugins = [];
 
-        self.canEdit = function (editing) {
-
-            if (editing.indexOf(self.data.type) > -1) {
-                return true;
-            }
-
-            return false;
-        }
-
         self.save = function (onSaved) {
             // loop plugins and fire saves...
 
@@ -385,9 +389,23 @@ var RcmAdminService = {
             }
         }
 
+        self.canEdit = function (editing) {
+
+            if (editing.indexOf(self.data.type) > -1) {
+
+                return true;
+            }
+
+            return false;
+        }
+
         self.onEditChange = function (args) {
 
             self.editMode = self.canEdit(args.editing)
+            // @debug - testing
+            //if(self.editMode){
+            //    self.elm.prepend('<div style="position: relative; top: 0px; left: 0px; border: #FF0000 solid 1px;">EDITING CONTAINER:'+self.data.type+'</div>');
+            //}
         };
 
         self.buildData = function (onBuilt) {
@@ -489,6 +507,9 @@ var RcmAdminService = {
 
             if (self.canEdit() && pluginObject.initEdit) {
 
+                // @debug - testing
+                //self.elm.prepend('<div style="position: relative; top: 0px; left: 0px; border: #ffff00 solid 1px;">EDITING:'+self.data.name+'</div>');
+
                 pluginObject.initEdit();
             }
 
@@ -519,7 +540,7 @@ var RcmAdminService = {
             if (typeof onSaved === 'function') {
                 onSaved(self);
             }
-        }
+        };
 
         self.canEdit = function () {
 
@@ -533,11 +554,7 @@ var RcmAdminService = {
                 }
             }
 
-            if (editing.length > 0) {
-                return true;
-            }
-
-            return false;
+            return self.container.canEdit(editing);
         };
 
         self.getPluginObject = function () {
@@ -563,7 +580,7 @@ var RcmAdminService = {
                 }
             }
 
-            self.pluginObject = new RcmAdminService.RcmPluginEditJs(id, pluginContainer);
+            self.pluginObject = new RcmAdminService.RcmPluginEditJs(id, pluginContainer, name);
             return self.pluginObject;
         }
 
@@ -616,18 +633,18 @@ var RcmAdminService = {
      * @param pluginContainer
      * @constructor
      */
-    RcmPluginEditJs: function (id, pluginContainer) {
+    RcmPluginEditJs: function (id, pluginContainer, name) {
 
         var self = this;
         self.id = id;
         //self.pluginContainer = pluginContainer;
 
         self.initEdit = function () {
-            console.log('initEdit: no edit js object found - using default for: ' + self.id);
+            //console.log('initEdit: no edit js object found for '+name+' - using default for: ' + self.id);
         };
 
         self.getSaveData = function () {
-            console.log('getSaveData: no edit js object found - using default for: ' + self.id);
+            //console.log('getSaveData: no edit js object found '+name+' - using default for: ' + self.id);
             return {};
         };
     },
