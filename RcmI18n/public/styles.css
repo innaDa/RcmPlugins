@@ -85,3 +85,21 @@
         float:left;
     }
 }
+.search-box {
+    min-width: 175px;
+    float: right;
+    display:inline;
+}
+
+
+.search-icon {
+    position: static;
+}
+.search-copy {
+    float:right;
+    display:inline;
+    width: 100px;
+}
+.input-group {
+    padding: 0px;
+}

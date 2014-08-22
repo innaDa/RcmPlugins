@@ -26,6 +26,7 @@
                 ' </div><!-- /.modal-dialog -->' +
                 '</div><!-- /.modal -->');
         modal.modal('show');
+        $('#alertModal .ok').focus();
         modal.find('.ok').click(function () {
             $('.modal-backdrop').remove();
             $('#alertModal').remove();
@@ -64,6 +65,7 @@
                 ' </div><!-- /.modal-dialog -->' +
                 '</div><!-- /.modal -->');
         modal.modal('show');
+
         modal.find('.cancel').click(function () {
             $('.modal-backdrop').remove();
             $('#alertModal').remove();
