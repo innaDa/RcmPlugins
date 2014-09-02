@@ -7,7 +7,7 @@ $this->headLink()->appendStylesheet(
 
 ?>
 <!-- <panel> -->
-<div class="rcmAdminPanelWrapper">
+<div class="rcmAdminPanelWrapper" ng-cloak>
     <div class="rcmAdminPanelFixed">
         <div class="rcmAdminPanelInner">
             <div class="rcmAdminPanelNav">
@@ -19,7 +19,7 @@ $this->headLink()->appendStylesheet(
                     <div ng-show="rcmAdminPage.editMode">
                         <button
                             class="btn btn-primary btn-xs"
-                            rcm-admin-edit-button="cancel"
+                            rcm-admin-edit-button="save"
                             type="button"
                             >
                             <span
@@ -47,24 +47,6 @@ $this->headLink()->appendStylesheet(
                             <span class="glyphicon glyphicon-edit"></span>
                             Edit
                         </button>
-                        <!-- EXAMPLES
-                        <button
-                            class="btn btn-primary btn-xs"
-                            rcm-admin-edit-button="layout"
-                            type="button"
-                            >
-                            <span class="glyphicon glyphicon-edit"></span>
-                            Edit Layout
-                        </button>
-                        <button
-                            class="btn btn-primary btn-xs"
-                            rcm-admin-edit-button="sitewide"
-                            type="button"
-                            >
-                            <span class="glyphicon glyphicon-edit"></span>
-                            Edit Sitewide
-                        </button>
-                        -->
                     </div>
                 </div>
 
@@ -87,4 +69,5 @@ $this->headLink()->appendStylesheet(
         </div>
     </div>
 </div>
+<?= $this->availablePluginsList() ?>
 <!-- </panel> -->
