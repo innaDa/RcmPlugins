@@ -1,4 +1,4 @@
-.loading {
+.translations .loading {
     display: none;
 
     -webkit-animation: spin 1s linear infinite;
@@ -26,7 +26,7 @@
 }
 
 /* </loader> */
-.loading.active {
+.translations .loading.active {
     display: inline-block;
     width: auto; /* fix for unknown width elements */
     font-size: 22px;
@@ -38,7 +38,7 @@
     font-size: 22px;
 }
 
-.loadBar div {
+.translations .loadBar div {
     width: 5%;
     margin: 0 auto;
     margin-top: 20px;
@@ -50,24 +50,24 @@
     /*width: 90%;*/
 }
 }
-.fixed {
+.translations .fixed {
     margin-top: 15px;
     padding: 0 15px 0 15px;
 }
 
-.modal-header.fixed {
+.translations .modal-header.fixed {
     height: 5em;
 }
 
-.invisible {
+.translations .invisible {
     visibility: hidden;
 }
 
-.titleTranslations {
+.translations .titleTranslations {
     background-color: #F5F5F5;
 }
 
-.defaultMes td {
+.translations .defaultMes td {
     padding-top: 25px;
     padding-bottom: 25px;
 }
@@ -85,21 +85,21 @@
         float:left;
     }
 }
-.search-box {
+.translations .search-box {
     min-width: 175px;
     float: right;
     display:inline;
 }
 
 
-.search-icon {
+.translations .search-icon {
     position: static;
 }
-.search-copy {
+.translations .search-copy {
     float:right;
     display:inline;
     width: 100px;
 }
-.input-group {
+.translations .input-group {
     padding: 0px;
 }
