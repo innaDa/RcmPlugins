@@ -13,9 +13,10 @@
  * @license   http://www.nolicense.com None
  * @version   GIT: <git_id>
  */
-var RcmTabsEdit = function (instanceId, container) {
+var RcmTabsEdit = function (instanceId, container, pluginHandler) {
 
     var me = this;
+    me.pluginHandler = pluginHandler;
 
     var titleWrap = container.find('.titleWrap');
     var bodyWrap = container.find('.bodyWrap');
@@ -23,7 +24,7 @@ var RcmTabsEdit = function (instanceId, container) {
     var sortMode = false;
     var embedMsg = 'Place Embed Code Below:<br>';
     var ajaxEditHelper = new AjaxPluginEditHelper(
-        instanceId, container, 'rcm-distributor-app'
+        instanceId, container, pluginHandler
     );
 
     /**
@@ -39,6 +40,8 @@ var RcmTabsEdit = function (instanceId, container) {
      * @param instanceConfig
      */
     this.completeInitEdit = function (instanceConfig) {
+        tabs.tabs();//needed for dragging new plugin on page
+
         me.addRightClick(
             rcm.getPluginContainerSelector(instanceId) + ' .title', true
         );
@@ -140,8 +143,7 @@ var RcmTabsEdit = function (instanceId, container) {
             '<p>Lorem ipsum</p>' +
             '</div>'
         ));
-
-        rcm.angularCompile(container);
+        me.pluginHandler.updateView();
     };
 
     this.addRawHtmlTab = function (newId) {

@@ -7,14 +7,20 @@ RcmPluginDrag = {
     initDrag: function () {
         RcmPluginDrag.makePluginsDraggable();
         RcmPluginDrag.makePluginsSortable();
-//        RcmPluginDrag.addCMSHandles();
+        //RcmPluginDrag.addCMSHandles();
     },
     /**
      * Make plugins in the layout editor menu draggable
      */
     makePluginsDraggable: function () {
         $(".availablePluginsMenu .rcmPluginDrag").each(function () {
-            $(this).draggable({
+            RcmPluginDrag.makePluginItemDragable($(this));
+        });
+    },
+
+    makePluginItemDragable: function (pluginItem) {
+        pluginItem.draggable(
+            {
                 cursorAt: {left: 40, top: 10},
                 helper: function () {
                     return RcmPluginDrag.pluginDraggableHelper(this)
@@ -25,17 +31,21 @@ RcmPluginDrag = {
                 revert: 'invalid',
                 connectToSortable: '.rcmContainer',
                 appendTo: 'body'
-            });
+            }
+        );
+
+    },
+
+    /**
+     * Disable dragging on plugins
+     *
+     stopPluginsDraggable: function () {
+        $("#rcmLayoutAccordion").find(".rcmPluginDrag").each(function (v, e) {
+            $(e).draggable("destroy");
         });
     },
-//    /**
-//     * Disable dragging on plugins
-//     */
-//    stopPluginsDraggable: function () {
-//        $("#rcmLayoutAccordion").find(".rcmPluginDrag").each(function (v, e) {
-//            $(e).draggable("destroy");
-//        });
-//    },
+     */
+
     /**
      * Callback for Draggable - Helper
      *
@@ -45,18 +55,19 @@ RcmPluginDrag = {
     pluginDraggableHelper: function (container) {
         var pluginContainer = $(container).find(".rcmPlugin");
         var pluginData = RcmPluginDrag.getPluginContainerInfo(pluginContainer);
-        if (pluginData.isSiteWide != 'Y') {
+        if (pluginData.instanceId < 0) {//greater than 0 not sitewide instance
             $(pluginContainer).attr(
                 'data-rcmPluginInstanceId',
                 pluginData.instanceId * 10
             );
         }
         var helper = $(pluginContainer).clone(false);
-//Get Ajax
+        //Get Ajax
         RcmPluginDrag.pluginDraggableStart(helper, pluginContainer);
         RcmPluginDrag.setHelperWidth(helper, pluginContainer);
         return $(helper);
     },
+
     /**
      * Callback for Draggable - Start. Preforms Ajax Request for new
      * Plugin instance to add to page.
@@ -68,14 +79,15 @@ RcmPluginDrag = {
         }
         var pluginData = RcmPluginDrag.getPluginContainerInfo(pluginContainer);
         var url = '/rcm-admin-get-instance/' + pluginData.pluginName + '/' + pluginData.instanceId;
-//        var url = '/fakePluginInhstanceTrash';
-        $.getJSON(
+        //        var url = '/fakePluginInhstanceTrash';
+        $.get(
             url,
             function (data) {
                 RcmPluginDrag.getInstanceSuccessCallback(data, helper, pluginContainer)
             }
         );
     },
+
     /**
      * Set the width for helper divs when dragging new plugins. This
      * keeps plugins from spanning the entire page.
@@ -91,6 +103,7 @@ RcmPluginDrag = {
             $(helper).width(divWidth);
         }
     },
+
     /**
      * Runs after a successful ajax request for a new plugin.
      *
@@ -99,24 +112,11 @@ RcmPluginDrag = {
      * @param pluginContainer
      */
     getInstanceSuccessCallback: function (data, helper, pluginContainer) {
-        if (data.js != undefined && data.js != '') {
-            RcmPluginDrag.loadPluginJs(data.js);
-        }
-        $(helper).html(data.display);
-        $(pluginContainer).find(".rcmPluginContainer").html(data.display);
+        $(helper).html(data);
+        $(pluginContainer).find(".rcmPluginContainer").html(data);
         RcmPluginDrag.setHelperWidth(helper, pluginContainer);
     },
-    /**
-     * Load a plugins edit script.
-     *
-     * @param jsPath
-     */
-    loadPluginJs: function (jsPath) {
-        var scriptAlreadyLoadedCheck = $('script[src="' + jsPath + '"]');
-        if (scriptAlreadyLoadedCheck.length < 1) {
-            $.getScript(jsPath);
-        }
-    },
+
     /**
      * Callback for Draggable - Drag event
      */
@@ -133,6 +133,7 @@ RcmPluginDrag = {
             RcmPluginDrag.pluginDragPlaceHolder($(container).find(".rcmPlugin"));
         }
     },
+
     /**
      * Fix for containers that have no current plugins.
      *
@@ -140,71 +141,80 @@ RcmPluginDrag = {
      */
     pluginDragPlaceHolder: function (container) {
         var placeHolder = $('.rcmPluginSortPlaceHolder');
-//If placeholder exists and has not yet been filled with a plugin
+        // If placeholder exists and has not yet been filled with a plugin
         if (placeHolder.length && !placeHolder.html().length) {
-//Copy plugin css classes
+            // Copy plugin css classes
             placeHolder.attr(
                 'class',
                 container.attr('class')
                     + ' rcmPluginSortPlaceHolder'
             );
-//Copy plugin html
+            // Copy plugin html
             placeHolder.html(container.html());
         }
     },
+
+    /**
+     * pluginResizeStartHandler
+     * @param event
+     * @param ui
+     */
     pluginResizeStartHandler: function (event, ui) {
         ui.element.attr('data-rcmPluginResized', 'Y');
         RcmPluginDrag.checkResize(ui.element);
     },
+
+    /**
+     * makePluginsResizable
+     */
     makePluginsResizable: function () {
-        $('#RcmRealPage').find('.rcmPlugin').resizable({
-            grid: 10,
-            start: RcmPluginDrag.pluginResizeStartHandler
-        });
+        $('#RcmRealPage').find('.rcmPlugin').resizable(
+            {
+                grid: 10,
+                start: RcmPluginDrag.pluginResizeStartHandler
+            }
+        );
     },
+
     /**
      * Makes plugins sortable.
      */
     makePluginsSortable: function () {
-        $(".rcmContainer").sortable({
-            connectWith: '.rcmContainer',
-            dropOnEmpty: true,
-            helper: "original",
-            tolerance: 'pointer',
-            placeholder: "rcmPluginSortPlaceHolder",
-            forcePlaceholderSize: false,
-            handle: '.rcmSortableHandle',
-            change: function (event, ui) {
-                RcmPluginDrag.pluginSortableChange(ui);
-            },
-            receive: function (event, ui) {
-                RcmPluginDrag.pluginSortableReceive(this, ui);
-            },
-            start: function (event, ui) {
-                RcmPluginDrag.pluginSortableStart(ui);
-            },
-            stop: function (event, ui) {
-                $('html').removeClass('rcmDraggingPlugins');
-                var initialInstance = $(ui.item).find(".initialState");
-                if (!$(initialInstance).is('.initialState')) {
-                    /* Let the editor know that dragging has stopped */
-//                    me.rcmPlugins.initRichEdits(
-//                        ui.item, me.getPluginContainerInfo(ui.item)
-//                    );
-                }
-            },
-            cancel: '[data-textedit]'
-        });
+        $(".rcmContainer").sortable(
+            {
+                connectWith: '.rcmContainer',
+                dropOnEmpty: true,
+                helper: "original",
+                tolerance: 'pointer',
+                placeholder: "rcmPluginSortPlaceHolder",
+                forcePlaceholderSize: false,
+                handle: '.rcmSortableHandle',
+                change: function (event, ui) {
+                    RcmPluginDrag.pluginSortableChange(ui);
+                },
+                receive: function (event, ui) {
+                    RcmPluginDrag.pluginSortableReceive(this, ui);
+                },
+                start: function (event, ui) {
+                    RcmPluginDrag.pluginSortableStart(ui);
+                },
+                stop: RcmPluginDrag.pluginSortableStop,
+                cancel: '[data-textedit]'
+            }
+        );
         RcmPluginDrag.makePluginsResizable();
     },
-//    /**
-//     * Makes plugins sortable.
-//     */
-//    stopPluginsSortable: function () {
-//        $(".rcmContainer").each(function (v, e) {
-//            $(e).sortable("destroy");
-//        });
-//    },
+
+    /**
+     * Makes plugins sortable.
+     *
+     stopPluginsSortable: function () {
+        $(".rcmContainer").each(function (v, e) {
+            $(e).sortable("destroy");
+        });
+    },
+     */
+
     /**
      * Plugin Sortable Change event
      *
@@ -226,18 +236,34 @@ RcmPluginDrag = {
             placeHolder.html(pluginDiv.html());
         }
     },
+
+    /**
+     * pluginSortableStart
+     * @param ui
+     */
     pluginSortableStart: function (ui) {
         $('html').addClass('rcmDraggingPlugins');
         /* Advise the editor that we are moving it's container */
         var richEdit = $(ui.item).find('[data-richedit]');
         if (richEdit.length > 0) {
             var pluginContainer = $(richEdit).closest('.rcmPlugin');
-//            me.rcmPlugins.removeRichEdits(
-//                pluginContainer,
-//                RcmPluginDrag.getPluginContainerInfo(pluginContainer)
-//            );
-//            me.editor.startDrag(richEdit);
+            //me.rcmPlugins.removeRichEdits(
+            //    pluginContainer,
+            //    RcmPluginDrag.getPluginContainerInfo(pluginContainer)
+            //);
+            //me.editor.startDrag(richEdit);
         }
+    },
+
+    /**
+     * pluginSortableStop
+     * @param ui
+     */
+    pluginSortableStop: function (event, ui) {
+        var pluginData = RcmPluginDrag.getPluginContainerInfo(ui.item);
+        $('html').removeClass('rcmDraggingPlugins');
+        RcmAdminService.getPage().registerObjects();
+        return true;
     },
     /**
      * Tells the sortable objects what to do with a new plugin.
@@ -246,43 +272,63 @@ RcmPluginDrag = {
      * @param ui
      */
     pluginSortableReceive: function (container, ui) {
-//Get the current Item
+        //Get the current Item
         var newItem = $(container).find(".rcmPluginDrag");
-//Find the actual plugin instance
+        //Find the actual plugin instance
         var initialInstance = $(ui.item).find(".initialState");
-//Create a new element to insert once dropped
-        var newDiv = $(initialInstance).find(".rcmPlugin").clone(false);
-        var pluginData = RcmPluginDrag.getPluginContainerInfo(newDiv);
+        var isPageContainer = $(container).attr('data-isPageContainer') == 'Y';
+        var badMsg = 'Site-wide plugins can only be added to the inner page,' +
+            ' not the outer layout.';
+        var pluginData;
         if ($(initialInstance).is('.initialState')) {
-            $(newItem).replaceWith($(newDiv));
-            if (pluginData.isSiteWide == 'Y') {
-                $('#' + pluginData.displayName).hide();
+            //New plugin received
+            var dragDiv = $(initialInstance).find(".rcmPlugin");
+            pluginData = RcmPluginDrag.getPluginContainerInfo(dragDiv);
+            if (pluginData.isSiteWide && !isPageContainer) {
+                newItem.remove();
+                $().alert(badMsg);
+                return;
             }
-            $(newDiv).find("a").unbind('click').click(function (e) {
-//e.preventDefault();
-            });
-//            me.rcmPlugins.initPluginEditMode(newDiv);
-            RcmPluginDrag.addPluginToolbar(newDiv);
+            var newDiv = dragDiv.clone(false);
+            $(newItem).replaceWith($(newDiv));
+
+        } else {
+            //Existing plugin received
+            var plugin = $(ui.item);
+            pluginData = RcmPluginDrag.getPluginContainerInfo(plugin);
+            if (pluginData.isSiteWide && !isPageContainer) {
+                $(ui.sender).sortable('cancel');
+                $().alert(badMsg);
+                return;
+            }
         }
-//Make sure the new plugin is sizable
+        RcmAdminService.getPage().registerObjects();
+        //Make sure the new plugin is sizable
         RcmPluginDrag.makePluginsResizable();
     },
-//    /**
-//     * Delete Plugin on clink bind
-//     *
-//     * @param container
-//     */
-//    deletePlugin: function (container) {
-//        var pluginData = RcmPluginDrag.getPluginContainerInfo(container);
-//        if (pluginData.isSiteWide == 'Y') {
-//            $('#' + pluginData.displayName).show();
-//        }
-//        me.rcmPlugins.removeRichEdits(container, pluginData);
-//        me.rcmPlugins.removeTextEdits(container, pluginData);
-//        me.rcmPlugins.removeCalledPlugin(container);
-//        $(container).remove();
-//    },
 
+    /**
+     * Delete Plugin on clink bind
+     *
+     * @param container
+     *
+     deletePlugin: function (container) {
+        var pluginData = RcmPluginDrag.getPluginContainerInfo(container);
+        if (pluginData.isSiteWide == 'Y') {
+            $('#' + pluginData.displayName).show();
+        }
+        me.rcmPlugins.removeRichEdits(container, pluginData);
+        me.rcmPlugins.removeTextEdits(container, pluginData);
+        me.rcmPlugins.removeCalledPlugin(container);
+        $(container).remove();
+    },
+     */
+
+    /**
+     * getElementWidth
+     * @param container
+     * @returns {*|jQuery}
+     */
     getElementWidth: function (container) {
         var elementToUse = container;
         var loopCounter = 0;
@@ -293,6 +339,11 @@ RcmPluginDrag = {
         return $(elementToUse).width();
     },
 
+    /**
+     * getPluginContainerInfo
+     * @param container
+     * @returns {{pluginName: (*|jQuery), isSiteWide: (*|jQuery), instanceId: (*|jQuery), displayName: (*|jQuery)}}
+     */
     getPluginContainerInfo: function (container) {
         var pluginContainer = container;
         if (!pluginContainer.hasClass('rcmPlugin')) {
@@ -300,7 +351,7 @@ RcmPluginDrag = {
         }
         var pluginData = {
             pluginName: $(pluginContainer).attr('data-rcmPluginName'),
-            isSiteWide: $(pluginContainer).attr('data-rcmSiteWidePlugin'),
+            isSiteWide: $(pluginContainer).attr('data-rcmSiteWidePlugin') == 1,
             instanceId: $(pluginContainer).attr('data-rcmPluginInstanceId'),
             displayName: $(pluginContainer).attr('data-rcmPluginDisplayName')
         };
@@ -309,34 +360,5 @@ RcmPluginDrag = {
         }
         pluginData.editClass = pluginData.pluginName + 'Edit';
         return pluginData;
-    },
-
-    addPluginToolbar: function (pluginContainer) {
-        $(pluginContainer).prepend("<span class='rcmSortableHandle rcmLayoutEditHelper' title='Move Plugin' />");
-//$(pluginContainer).prepend("<span class='rcmDeletePluginMenuItem rcmLayoutEditHelper' title='Delete Plugin' />");
-//$(pluginContainer).prepend("<span class='rcmSiteWidePluginMenuItem rcmLayoutEditHelper' title='Make Site-Wide' />");
-        var pullDownMenu = '<span class="rcmContainerMenu rcmLayoutEditHelper" title="Container Menu"><ul><li><a href="#"></a><ul><li><a href="#" class="rcmSiteWidePluginMenuItem">Mark as site-wide</a> </li><li><a href="#" class="rcmDeletePluginMenuItem">Delete Plugin</a> </li></ul></li></ul></span>'
-        $(pluginContainer).prepend(pullDownMenu);
-        $(pluginContainer).hover(
-            function () {
-                $(this).find(".rcmLayoutEditHelper").each(function () {
-                    $(this).show();
-                });
-            },
-            function () {
-                $(this).find(".rcmLayoutEditHelper").each(function () {
-                    $(this).hide();
-                })
-            }
-        );
-        $(pluginContainer).find(".rcmDeletePluginMenuItem").click(function (e) {
-            me.layoutEditor.deleteConfirm(this);
-            e.preventDefault();
-        });
-        $(pluginContainer).find(".rcmSiteWidePluginMenuItem").click(function (e) {
-            me.layoutEditor.makeSiteWide($(this).parents(".rcmPlugin"));
-            e.preventDefault();
-        });
-//        RcmPluginDrag.checkResize(pluginContainer);
     }
 };

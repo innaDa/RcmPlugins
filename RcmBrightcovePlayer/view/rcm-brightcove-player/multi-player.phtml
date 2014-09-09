@@ -50,9 +50,6 @@
                     <param name="templateReadyHandler"
                            value="onTemplateReady<?php echo $this->instanceId; ?>"/>
                 </object>
-                <script
-                    type="text/javascript">brightcove.createExperiences();</script>
-                <!-- End of Brightcove Player -->
             </div>
 
 
@@ -74,7 +71,7 @@
                         <table>
                             <tr>
                                 <td style="text-align: left;">
-                                    <img src="{{video.thumbnailURL}}"
+                                    <img ng-src="{{video.thumbnailURL}}"
                                          width="135px" height="70px"/>
                                 </td>
                             </tr>

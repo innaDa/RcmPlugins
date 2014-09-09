@@ -20,12 +20,15 @@ $this->headScript()->appendFile(
     'text/javascript'
 );
 ?>
+<script type="application/javascript">
+    var RcmSocialButtonsAvailableButtonsForEdit = <?=json_encode($availableButtons)?>;
+</script>
 
 <a class="rcmShareThisKey"
    data-rcmShareThisKey="<?= $this->instanceConfig['shareThisKey'] ?>"></a>
 
 <div class="rcmSocialButtonsWrapper">
-    <?php foreach ($this->instanceConfig['buttons'] as &$button): ?>
+    <?php foreach ($this->instanceConfig['buttons'] as $button): ?>
         <span class='st_<?= $button . $this->instanceConfig['style'] ?>'>
         </span>
     <?php endforeach ?>

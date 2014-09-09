@@ -13,13 +13,7 @@
  * @license   License.txt New BSD License
  * @version   GIT: <git_id>
  */
-var RcmPeopleSliderEdit = function (instanceId, container) {
-
-    /**
-     * Always refers to this object unlike the 'this' JS variable;
-     *
-     * @type {RcmPeopleSliderEdit}
-     */
+var RcmPeopleSliderEdit = function (instanceId, container, pluginHandler) {
     var me = this;
 
     /**
@@ -122,7 +116,7 @@ var RcmPeopleSliderEdit = function (instanceId, container) {
             //CkEditor has issues attaching to hidden elements
             personEles.details.show();
 
-            rcm.angularCompile(container);
+            pluginHandler.updateView();
         }
     };
 

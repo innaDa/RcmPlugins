@@ -1,6 +1,3 @@
-<?php
-$this->rcmIncludeJqueryUi();
-?>
 <div class="tabs" id="rcmTabs_<?= $this->instanceId; ?>">
     <ul class="titleWrap">
         <?php foreach ($this->instanceConfig['containers'] as $tab) {
@@ -39,3 +36,4 @@ $this->rcmIncludeJqueryUi();
         $('#rcmTabs_<?=  $this->instanceId; ?>').tabs();
     })
 </script>
+

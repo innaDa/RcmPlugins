@@ -2,11 +2,11 @@
 
 
 $this->headLink()->appendStylesheet(
-    $this->basePath() . '/modules/rcm-thumbnail-slider/style.css'
+    $this->basePath() . '/modules/rcm-image-with-thumbnails/style.css'
 );
 
 $this->headScript()->appendFile(
-    $this->basePath() . '/modules/rcm-image-with-thubnails/script.js'
+    $this->basePath() . '/modules/rcm-image-with-thumbnails/script.js'
 );
 
 
@@ -18,7 +18,7 @@ $this->headScript()->appendFile(
 
 <ul class="imgThumbs">
     <?php $i = 0; ?>
-    <?php foreach ($this->instanceConfig as &$value) : ?>
+    <?php foreach ($this->instanceConfig as $value) : ?>
 
         <li>
             <a href="#" rel="<?= $value['main']; ?>" class="image">

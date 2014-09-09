@@ -143,6 +143,16 @@ return array(
                     ),
                 ),
             ),
+            'RcmAdmin\Page\SavePage' => array(
+                'type' => 'Zend\Mvc\Router\Http\Segment',
+                'options' => array(
+                    'route' => '/rcm-admin/page/save-page/:rcmPageType/:rcmPageName/:rcmPageRevision',
+                    'defaults' => array(
+                        'controller' => 'RcmAdmin\Controller\PageController',
+                        'action' => 'savePage',
+                    ),
+                ),
+            ),
         ),
     ),
     'rcmAdmin' => array(
@@ -229,6 +239,9 @@ return array(
                 'modules/rcm-admin/css/rcm-admin.css' => array(
                     'modules/rcm-admin/css/admin-jquery-ui.css',
                     'modules/rcm-admin/css/cm-admin.css',
+                    'modules/rcm-admin/css/layout-editor.css',
+                    'modules/rcm-admin/css/rcm-admin-panel.css',
+                    'modules/rcm-admin/css/rcm-admin-navigation.css',
                 ),
             ),
         ),
