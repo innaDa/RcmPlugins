@@ -5,7 +5,7 @@ $this->headLink()->appendStylesheet(
     . '/modules/rcm-recommended-products/style.css'
 );
 ?>
-<div class="rcmRecommendedProductsList">
+<div class="rcmRecommendedProductsList" id="<?= str_replace(' ', '', $prodName) ?>">
     <a href="<?= $this->escapeHtml($prodUrl) ?>">
     <div class="recommendedProductImage"><img
             src="<?= $this->escapeHtml($mainImage) ?>">
@@ -25,5 +25,5 @@ $this->headLink()->appendStylesheet(
         </button>
     </a>
     </div>
-</div> 
+</div>
 
