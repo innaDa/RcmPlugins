@@ -104,7 +104,7 @@ angular.module(
 
             var eventsRegistered = false;
 
-            var safeApply = function(scope, fn) {
+            var safeApply = function (scope, fn) {
                 var phase = scope.$root.$$phase;
                 if (phase == '$apply' || phase == '$digest') {
                     if (fn && (typeof(fn) === 'function')) {
@@ -510,12 +510,12 @@ var RcmAdminService = {
         var page = RcmAdminService.getPage(
             function (page) {
                 if (typeof onComplete === 'function') {
-                    onComplete(page.plugins[id]);
+                    onComplete(page.getPlugin(id));
                 }
             }
         );
 
-        return page.plugins[id];
+        return page.getPlugin(id);
     },
 
     /**
@@ -1104,10 +1104,6 @@ var RcmAdminService = {
                 }
             );
 
-            if (typeof onComplete === 'function') {
-                onComplete(elm);
-            }
-
             if (elm.attr('data-rcmPluginResized') == 'N') {
                 elm.find(".rcmRemoveSizePluginMenuItem").hide();
             }
@@ -1119,6 +1115,22 @@ var RcmAdminService = {
                     elm.find(".rcmRemoveSizePluginMenuItem").hide();
                 }
             );
+
+            RcmAdminService.RcmPluginViewModel.enableResize(elm);
+
+            if (typeof onComplete === 'function') {
+                onComplete(elm);
+            }
+        },
+
+        enableResize: function (elm, onComplete) {
+
+            try {
+                elm.resizable('destroy');
+            } catch (e) {
+                // nothing
+            }
+
             elm.resizable(
                 {
                     stop: function () {
@@ -1127,6 +1139,10 @@ var RcmAdminService = {
                     }
                 }
             );
+
+            if (typeof onComplete === 'function') {
+                onComplete(elm);
+            }
         },
 
         /**
@@ -1382,6 +1398,19 @@ var RcmAdminService = {
 
             return self.model.getData();
         };
+
+        /**
+         * getPlugin
+         * @param pluginId
+         * @returns {*}
+         */
+        self.getPlugin = function (pluginId) {
+            if (self.plugins[pluginId]) {
+                return self.plugins[pluginId];
+            }
+
+            return null;
+        }
 
         /**
          * addPlugin
@@ -1765,7 +1794,7 @@ var RcmAdminService = {
             self.pluginObject = new RcmAdminService.RcmPluginEditJs(
                 id,
                 pluginContainer,
-                name
+                self
             );
 
             return self.pluginObject;
