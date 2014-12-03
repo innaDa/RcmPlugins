@@ -17,7 +17,6 @@ namespace RcmAdmin\Controller;
 
 use Rcm\Entity\Country;
 use Rcm\Entity\Language;
-use Rcm\Entity\Page;
 use Rcm\Entity\Site;
 use Rcm\Http\Response;
 use Rcm\View\Model\ApiJsonModel;
@@ -26,7 +25,6 @@ use RcmAdmin\Entity\SiteApiRequest;
 use RcmAdmin\Entity\SiteApiResponse;
 use RcmAdmin\Entity\SiteResponse;
 use RcmAdmin\InputFilter\SiteInputFilter;
-use Zend\Mvc\Controller\AbstractRestfulController;
 use Zend\View\Model\JsonModel;
 
 
@@ -45,47 +43,8 @@ use Zend\View\Model\JsonModel;
  *
  * @method boolean rcmIsAllowed($resourceId, $privilege = null, $providerId = 'Rcm\Acl\ResourceProvider')
  */
-class ApiAdminManageSitesController extends AbstractRestfulController
+class ApiAdminManageSitesController extends ApiAdminBaseController
 {
-    /**
-     * getConfig
-     *
-     * @return array
-     */
-    protected function getConfig()
-    {
-        return $this->serviceLocator->get('config');
-    }
-
-    /**
-     * getEntityManager
-     *
-     * @return \Doctrine\ORM\EntityManagerInterface
-     */
-    protected function getEntityManager()
-    {
-        return $this->serviceLocator->get('Doctrine\ORM\EntityManager');
-    }
-
-    /**
-     * getSiteModel
-     *
-     * @return \RcmAdmin\Model\SiteModel
-     */
-    protected function getSiteModel()
-    {
-        return $this->serviceLocator->get('RcmAdmin\Model\SiteModel');
-    }
-
-    /**
-     * getCurrentUser
-     *
-     * @return \RcmUser\User\Entity\User
-     */
-    protected function getCurrentUser()
-    {
-        return $this->rcmUserGetCurrentUser();
-    }
 
     /**
      * getList
@@ -119,7 +78,7 @@ class ApiAdminManageSitesController extends AbstractRestfulController
             $sites[] = $this->buildSiteApiResponse($site);
         }
 
-        return new JsonModel($sites);
+        return new ApiJsonModel($sites, 0, 'Success');
     }
 
     /**\
@@ -138,7 +97,7 @@ class ApiAdminManageSitesController extends AbstractRestfulController
         }
 
         // get default site data - kinda hacky, but keeps us to one controller
-        if ($id == -1) {
+        if ($id == 'default') {
 
             $data = $this->getDefaultSiteSettings();
 
@@ -148,7 +107,17 @@ class ApiAdminManageSitesController extends AbstractRestfulController
 
             $result = $this->buildSiteApiResponse($site);
 
-            return new ApiJsonModel($result, null, 0, 'Success');
+            return new ApiJsonModel($result, 0, 'Success');
+        }
+
+        // get current site data - kinda hacky, but keeps us to one controller
+        if ($id == 'current') {
+
+            $site = $this->getCurrentSite();
+
+            $result = $this->buildSiteApiResponse($site);
+
+            return new ApiJsonModel($result, 0, 'Success');
         }
 
         /** @var \Rcm\Repository\Site $siteRepo */
@@ -158,17 +127,17 @@ class ApiAdminManageSitesController extends AbstractRestfulController
             $site = $siteRepo->find($id);
         } catch (\Exception $e) {
             return new ApiJsonModel(
-                null, null, 1, "Failed to find site by id ({$id})"
+                null, 1, "Failed to find site by id ({$id})"
             );
         }
 
         $result = $this->buildSiteApiResponse($site);
 
-        return new ApiJsonModel($result, null, 0, 'Success');
+        return new ApiJsonModel($result, 0, 'Success');
     }
 
     /**
-     * update
+     * update @todo - allow update of all properties and filter input
      *
      * @param mixed $siteId
      * @param mixed $data
@@ -222,7 +191,7 @@ class ApiAdminManageSitesController extends AbstractRestfulController
     }
 
     /**
-     * create - Create or Clone a site @todo Be more selective with Exceptions
+     * create - Create or Clone a site
      *
      * @param array $data - see buildSiteApiResponse()
      *
@@ -240,9 +209,16 @@ class ApiAdminManageSitesController extends AbstractRestfulController
         $inputFilter = new SiteInputFilter();
         $inputFilter->setData($data);
 
-        if(!$inputFilter->isValid()){
-            return new ApiJsonModel(array(), null, 1, 'Some values are missing or invalid.', $inputFilter->getMessages());
+        if (!$inputFilter->isValid()) {
+            return new ApiJsonModel(
+                array(),
+                1,
+                'Some values are missing or invalid.',
+                $inputFilter->getMessages()
+            );
         }
+
+        $data = $inputFilter->getValues();
 
         try {
 
@@ -257,22 +233,30 @@ class ApiAdminManageSitesController extends AbstractRestfulController
 
         } catch (\Exception $e) {
 
-            return new ApiJsonModel(null, null, 1, $e->getMessage());
+            return new ApiJsonModel(null, 1, $e->getMessage());
         }
 
+        $entityManager = $this->getEntityManager();
+
         /** @var \Rcm\Repository\Site $siteRepo */
-        $siteRepo = $this->getEntityManager()->getRepository('\Rcm\Entity\Site');
+        $siteRepo = $entityManager->getRepository('\Rcm\Entity\Site');
+
+        /** @var \Rcm\Repository\Page $pageRepo */
+        $pageRepo = $entityManager->getRepository('\Rcm\Entity\Page');
 
         /** @var \Rcm\Entity\Site $newSite */
         $newSite = $siteRepo->createNewSite($data['siteId']);
 
         $newSite->populate($data);
 
-        $author = $this->getCurrentUser()->getName();
+        $author = $this->getCurrentAuthor();
 
-        $this->createDefaultPages($newSite, $author);
-
-        $entityManager = $this->getEntityManager();
+        $pageRepo->createPages(
+            $newSite,
+            $this->getDefaultSitePageSettings($author),
+            true,
+            false
+        );
 
         try {
             $entityManager->persist($newSite);
@@ -280,12 +264,21 @@ class ApiAdminManageSitesController extends AbstractRestfulController
             $entityManager->flush();
         } catch (\Exception $e) {
 
-            return new ApiJsonModel(null, null, 1, $e->getMessage());
+            return new ApiJsonModel(null, 1, $e->getMessage());
+        }
+
+        $this->createPagePlugins($newSite, $this->getDefaultSitePageSettings($author));
+
+        try {
+            $entityManager->flush();
+        } catch (\Exception $e) {
+
+            return new ApiJsonModel(null, 1, $e->getMessage());
         }
 
         $siteApiResponse = $this->buildSiteApiResponse($newSite);
 
-        return new ApiJsonModel($siteApiResponse, null, 0, 'Success');
+        return new ApiJsonModel($siteApiResponse, 0, 'Success');
     }
 
     /**
@@ -304,50 +297,7 @@ class ApiAdminManageSitesController extends AbstractRestfulController
         return $siteApiResponse;
     }
 
-    //// MODEL ? ////
-
-    /**
-     * getDefaultSiteSettings
-     *
-     * @return array
-     */
-    public function getDefaultSiteSettings()
-    {
-        $config = $this->getConfig();
-
-        $myConfig = $config['rcmAdmin'];
-
-        if (!empty($myConfig['defaultSiteSettings'])
-            && is_array(
-                $myConfig['defaultSiteSettings']
-            )
-        ) {
-            return $myConfig['defaultSiteSettings'];
-        }
-
-        return array();
-    }
-
-    /**
-     * prepareDefaultValues
-     *
-     * @param array $data
-     *
-     * @return array
-     */
-    protected function prepareDefaultValues($data)
-    {
-        $defaults = $this->getDefaultSiteSettings();
-
-        foreach ($defaults as $key => $value) {
-
-            if (empty($data[$key])) {
-                $data[$key] = $value;
-            }
-        }
-
-        return $data;
-    }
+    //Model?//
 
     /**
      * Prepare Request Data
@@ -425,35 +375,120 @@ class ApiAdminManageSitesController extends AbstractRestfulController
         return $data;
     }
 
+
     /**
-     * createDefaultPages
+     * prepareDefaultValues
      *
-     * @param Site $site
+     * @param array $data
      *
-     * @return void
+     * @return array
      */
-    public function createDefaultPages(Site $site, $author)
+    protected function prepareDefaultValues($data)
     {
         $defaults = $this->getDefaultSiteSettings();
 
-        if (empty($defaults['pages'])) {
-            return;
+        foreach ($defaults as $key => $value) {
+
+            if (empty($data[$key])) {
+                $data[$key] = $value;
+            }
         }
 
-        if (!is_array($defaults['pages'])) {
-            return;
+        return $data;
+    }
+
+    /**
+     * getDefaultSiteSettings
+     *
+     * @return array
+     */
+    public function getDefaultSiteSettings()
+    {
+        $config = $this->getConfig();
+
+        $myConfig = $config['rcmAdmin']['defaultSiteSettings'];
+
+        return $myConfig;
+    }
+
+    /**
+     * getDefaultSiteSettings
+     *
+     * @return array
+     */
+    public function getDefaultSitePageSettings($author)
+    {
+        $myConfig = $this->getDefaultSiteSettings();
+
+        $pagesData = $myConfig['pages'];
+
+        // Set the author for each
+        foreach($pagesData as $key => $pageData){
+            $pagesData[$key]['author'] = $author;
         }
 
-        foreach ($defaults['pages'] as $key => $config) {
+        return $pagesData;
+    }
 
-            $page = new Page();
-            $page->setSite($site);
-            $page->setName($key);
-            $page->setDescription($config['decription']);
-            $page->setPageTitle($config['pageTitle']);
-            $page->setAuthor($author);
+    /**
+     * createPagePlugins
+     *
+     * @param Site  $site
+     * @param array $pagesData
+     * @param bool  $doFlush
+     *
+     * @return void
+     * @throws \Exception
+     */
+    protected function createPagePlugins(Site $site, $pagesData = array(), $doFlush = true)
+    {
+        $entityManager = $this->getEntityManager();
 
-            $site->addPage($page);
+        /** @var \Rcm\Repository\Page $pageRepo */
+        $pageRepo = $entityManager->getRepository('\Rcm\Entity\Page');
+
+        /** @var \Rcm\Repository\PluginInstance $pluginInstanceRepo */
+        $pluginInstanceRepo = $entityManager->getRepository('\Rcm\Entity\PluginInstance');
+
+        /** @var \Rcm\Repository\PluginWrapper $pluginWrapperRepo */
+        $pluginWrapperRepo = $entityManager->getRepository('\Rcm\Entity\PluginWrapper');
+
+        foreach ($pagesData as $pageName => $pageData) {
+
+            if(empty($pageData['plugins'])){
+                continue;
+            }
+
+            $page = $pageRepo->getPageByName($site, $pageData['name']);
+
+            if(!empty($page)){
+
+                $pageRevison = $page->getPublishedRevision();
+
+                if(empty($pageRevison)){
+                    throw new \Exception("Could not find published revision for page {$page->getPageId()}");
+                }
+
+                foreach($pageData['plugins'] as $pluginData){
+
+                    $pluginInstance = $pluginInstanceRepo->createPluginInstance(
+                        $pluginData,
+                        false
+                    );
+
+                    $pluginData['pluginInstanceId'] = $pluginInstance->getInstanceId();
+
+                    $wrapper = $pluginWrapperRepo->savePluginWrapper($pluginData);
+
+                    $pageRevison->addPluginWrapper($wrapper);
+
+                    $entityManager->persist($pageRevison);
+                }
+            }
+        }
+
+        if($doFlush) {
+            $entityManager->flush();
         }
     }
 

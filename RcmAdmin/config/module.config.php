@@ -108,7 +108,13 @@ return array(
                         'class' => 'RcmAdminMenu rcmStandardDialog',
                         'uri' => '/modules/rcm-admin/view/create-site.html',
                         'title' => 'Create Site',
-                    )
+                    ),
+//                    'Copy Pages' => array(
+//                        'label' => 'Copy Pages',
+//                        'class' => 'RcmAdminMenu rcmStandardDialog',
+//                        'uri' => '/modules/rcm-admin/view/site-page-copy.html',
+//                        'title' => 'Copy Pages',
+//                    )
                 )
             ),
             'User' => array(
@@ -194,6 +200,24 @@ return array(
                     'route' => '/api/admin/country[/:id]',
                     'defaults' => array(
                         'controller' => 'RcmAdmin\Controller\ApiAdminCountryController',
+                    )
+                ),
+            ),
+            'ApiAdminSitePageController' => array(
+                'type' => 'Zend\Mvc\Router\Http\Segment',
+                'options' => array(
+                    'route' => '/api/admin/sites/:siteId/pages[/:id]',
+                    'defaults' => array(
+                        'controller' => 'RcmAdmin\Controller\ApiAdminSitePageController',
+                    )
+                ),
+            ),
+            'ApiAdminPageTypesController' => array(
+                'type' => 'Zend\Mvc\Router\Http\Segment',
+                'options' => array(
+                    'route' => '/api/admin/pagetypes[/:id]',
+                    'defaults' => array(
+                        'controller' => 'RcmAdmin\Controller\ApiAdminPageTypesController',
                     )
                 ),
             ),
@@ -283,18 +307,57 @@ return array(
             'loginPage' => "/login",
             'notAuthorizedPage' => "/not-authorized",
             'notFoundPage' => "/not-found",
+            'containers' => array(
+                'guestTopNavigation',
+                'guestMainNavigation',
+                'guestRightColumn',
+                'guestFooter',
+            ),
             'pages' => array(
-                'login' => array(
-                    'decription' => 'Login Page.',
+                array(
+                    'name' => 'login',
+                    'description' => 'Login Page.',
                     'pageTitle' => 'Login',
+                    'plugins' => array(
+                        array(
+                            'plugin' => 'RcmLogin',
+                            'displayName' => 'Login Area',
+                            'instanceConfig' => array(),
+                            'layoutContainer' => '4',
+                        ),
+                    ),
                 ),
-                'not-authorized' => array(
-                    'decription' => 'Not Authorized Page.',
+                array(
+                    'name' => 'not-authorized',
+                    'description' => 'Not Authorized Page.',
                     'pageTitle' => 'Not Authorized',
+                    'plugins' => array(
+                        array(
+                            'plugin' => 'RcmHtmlArea',
+                            'displayName' => 'Login Area',
+                            'instanceConfig' => array(),
+                            'layoutContainer' => '4',
+                            'saveData' => array(
+                                'html' => '<h1>Access Denied</h1>',
+                            )
+                        ),
+                    ),
                 ),
-                'not-found' => array(
-                    'decription' => 'Not Found Page.',
+                array(
+                    'name' => 'not-found',
+                    'description' => 'Not Found Page.',
                     'pageTitle' => 'Not Found',
+                    'plugins' => array(
+                        array(
+                            'plugin' => 'RcmHtmlArea',
+                            'displayName' => 'Login Area',
+                            'instanceConfig' => array(),
+                            'layoutContainer' => '4',
+                            'saveData' => array(
+                                'html' => '<h1>Page Not Found</h1>',
+                            )
+                        ),
+                    ),
                 ),
             ),
         ),
@@ -344,6 +407,7 @@ return array(
                     'modules/rcm-admin/js/admin/rcm-save-ajax-admin-window.js',
                     'modules/rcm-admin/js/manage-sites/controller.js',
                     'modules/rcm-admin/js/create-site/controller.js',
+                    'modules/rcm-admin/js/site-page-copy/rcm-admin-site-page-copy.js',
                 ),
                 'modules/rcm-admin/css/rcm-admin.css' => array(
                     'modules/rcm-admin/css/admin-jquery-ui.css',
@@ -365,8 +429,6 @@ return array(
             => 'RcmAdmin\Factory\AdminPanelControllerFactory',
             'RcmAdminNavigation'
             => 'RcmAdmin\Factory\AdminNavigationFactory',
-            'RcmAdmin\Model\SiteModel'
-            => 'RcmAdmin\Factory\SiteModelFactory',
         ),
     ),
     'view_manager' => array(
@@ -412,6 +474,11 @@ return array(
             => 'RcmAdmin\Controller\ApiAdminThemeController',
             'RcmAdmin\Controller\ApiAdminCountryController'
             => 'RcmAdmin\Controller\ApiAdminCountryController',
+            'RcmAdmin\Controller\ApiAdminSitePageController'
+            => 'RcmAdmin\Controller\ApiAdminSitePageController',
+            'RcmAdmin\Controller\ApiAdminPageTypesController'
+            => 'RcmAdmin\Controller\ApiAdminPageTypesController',
+
         ),
     ),
 );
