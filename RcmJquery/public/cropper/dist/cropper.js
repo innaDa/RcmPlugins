@@ -789,7 +789,6 @@
       var image = this.image;
 
       degree = num(degree) || 0;
-
       if (!this.built || degree === 0 || this.disabled || !this.defaults.rotatable || !this.support.canvas) {
         return;
       }
