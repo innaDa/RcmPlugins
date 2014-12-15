@@ -33,7 +33,7 @@ return [
     ],
     'service_manager' => [
         'factories' => [
-            'RcmPwsProfileInfo' => 'RcmRecommendedProducts\Factory\PluginControllerFactory',
+            'RcmPwsProfileInfo' => 'RcmPwsProfileInfo\Factory\PluginControllerFactory',
         ],
     ],
     'controllers' => [
@@ -50,13 +50,7 @@ return [
     'asset_manager' => [
         'resolver_configs' => [
             'aliases' => [
-                'modules/rcm-recommended-products/' => __DIR__ . '/../public/',
-            ],
-            'collections' => [
-                // required for admin edit //
-//                'modules/rcm-admin/js/rcm-admin.js' => [
-//                    'modules/rcm-recommended-products/rcm-recommended-products-edit.js',
-//                ],
+                'modules/rcm-pws-profile-info/' => __DIR__ . '/../public/',
             ],
         ],
 
