@@ -76,7 +76,7 @@ class PluginControllerFactoryTest extends \PHPUnit_Framework_TestCase
              $mockCurrentSite
         );
         $serviceManager->setService(
-            'Aws\S3\S3Client',
+            'S3',
             $mockS3Client
         );
         $serviceManager->setService(
@@ -88,8 +88,6 @@ class PluginControllerFactoryTest extends \PHPUnit_Framework_TestCase
         $object = $factory->createService($serviceManager);
 
         $this->assertTrue($object instanceof PluginController);
-
-
 
     }
 }
