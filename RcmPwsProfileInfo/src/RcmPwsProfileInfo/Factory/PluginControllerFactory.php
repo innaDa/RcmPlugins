@@ -31,7 +31,7 @@ use Zend\ServiceManager\ServiceLocatorInterface;
  *
  * @category  Reliv
  * @package   RcmPwsProfileInfo\Factory
- * @author    authorFirstAndLast <author@relivinc.com>
+ * @author    Inna Davis <idavis@relivinc.com>
  * @copyright 2014 Reliv International
  * @license   License.txt New BSD License
  * @version   Release: <package_version>
@@ -45,8 +45,8 @@ class PluginControllerFactory implements FactoryInterface {
         $controller = new PluginController(
             $serviceLocator->get('config'),
             $serviceLocator->get(
-                'Rcm\Entity\Site'),
-            $serviceLocator->get('Aws\S3\S3Client'),
+                'Rcm\Service\CurrentSite'),
+            $serviceLocator->get('Aws')->get('S3'),
             $serviceLocator->get(
                 'Pws\Service\CurrentPws'
             )

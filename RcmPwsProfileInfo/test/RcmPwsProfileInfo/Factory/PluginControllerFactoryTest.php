@@ -72,7 +72,7 @@ class PluginControllerFactoryTest extends \PHPUnit_Framework_TestCase
         );
 
         $serviceManager->setService(
-            'Rcm\Entity\Site',
+            'Rcm\Service\CurrentSite',
              $mockCurrentSite
         );
         $serviceManager->setService(
