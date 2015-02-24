@@ -360,6 +360,7 @@ return [
             'containers' => [
                 'guestTopNavigation',
                 'guestMainNavigation',
+                'guestSearch',
                 'guestRightColumn',
                 'guestFooter',
             ],
